@@ -28,12 +28,14 @@ def add_memories(req: AddMemoryRequest):
             user_id=req.workSpace,
             metadata=req.metadata
         )
-        
-        print(req, result)
 
         return {
             "success": True,
             "data": result
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        import traceback
+        raise HTTPException(status_code=500, detail={
+            "error": str(e),
+            "type": type(e).__name__
+        })

@@ -16,4 +16,7 @@ def init_memory():
             "message": "Memory client initialized successfully"
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail={
+            "error": str(e),
+            "type": type(e).__name__
+        })

@@ -23,10 +23,10 @@ def get_memories(req: GetMemoryRequest):
     try:
         m = get_memory_client()
         
-        # 构建filters
+        # 构建filters - mem0 v2.x 使用直接值格式，不用 {"eq": value}
         filters = {}
         if req.category:
-            filters["category"] = {"eq": req.category}
+            filters["category"] = req.category
         
         # 如果有query参数，执行搜索
         if req.query:
@@ -48,4 +48,7 @@ def get_memories(req: GetMemoryRequest):
             "data": result
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail={
+            "error": str(e),
+            "type": type(e).__name__
+        })
