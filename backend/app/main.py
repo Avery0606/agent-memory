@@ -1,6 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
 from app.routes import addMemories, getMemories, updateMemory, deleteMemory, init
+
+# 加载 .env 文件
+load_dotenv()
 
 app = FastAPI(title="Memory Management API")
 

@@ -54,6 +54,19 @@ docker run -d --name qdrant -p 6333:6333 -p 6334:6333 qdrant/qdrant
 
 ### 2. 设置环境变量
 
+方式一：使用 `.env` 文件（推荐）
+
+```bash
+cd backend
+
+# 复制示例配置
+copy .env.example .env
+
+# 编辑 .env 文件，填入你的 API Key
+```
+
+方式二：使用环境变量
+
 ```bash
 # Windows PowerShell
 $env:MINIMAX_API_KEY="your-api-key"
