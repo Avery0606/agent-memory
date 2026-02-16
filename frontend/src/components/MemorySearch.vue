@@ -1,34 +1,35 @@
 <template>
   <div class="memory-search">
     <div class="search-box">
-      <input 
-        type="text" 
-        v-model="searchQuery" 
+      <el-input
+        v-model="searchQuery"
         placeholder="搜索记忆..."
         @keyup.enter="handleSearch"
+        clearable
       />
-      <button @click="handleSearch">搜索</button>
-      <button v-if="searchQuery" @click="clearSearch" class="clear-btn">清除</button>
+      <el-button type="primary" @click="handleSearch">搜索</el-button>
+      <el-button v-if="searchQuery" @click="clearSearch">清除</el-button>
     </div>
-    
+
     <div class="filters">
       <div class="filter-item">
-        <label>类别筛选：</label>
-        <select v-model="category" @change="handleSearch">
-          <option value="">全部</option>
-          <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
-        </select>
+        <span>类别筛选：</span>
+        <el-select v-model="category" placeholder="全部" @change="handleSearch" clearable>
+          <el-option value="" label="全部" />
+          <el-option v-for="cat in categories" :key="cat" :value="cat" :label="cat" />
+        </el-select>
       </div>
-      
+
       <div class="filter-item" v-if="isSearching">
-        <label>相似度阈值：</label>
-        <input 
-          type="range" 
-          v-model.number="threshold" 
-          min="0" 
-          max="1" 
-          step="0.1"
+        <span>相似度阈值：</span>
+        <el-slider
+          v-model="threshold"
+          :min="0"
+          :max="1"
+          :step="0.01"
+          :precision="2"
           @change="handleSearch"
+          style="width: 200px;"
         />
         <span>{{ (threshold * 100).toFixed(0) }}%</span>
       </div>
@@ -36,43 +37,40 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'MemorySearch',
-  props: {
-    categories: {
-      type: Array,
-      default: () => []
-    }
-  },
-  emits: ['search'],
-  data() {
-    return {
-      searchQuery: '',
-      category: '',
-      threshold: 0.5,
-      isSearching: false
-    }
-  },
-  methods: {
-    handleSearch() {
-      this.isSearching = !!this.searchQuery
-      this.$emit('search', {
-        query: this.searchQuery || null,
-        category: this.category || null,
-        threshold: this.threshold
-      })
-    },
-    clearSearch() {
-      this.searchQuery = ''
-      this.isSearching = false
-      this.$emit('search', {
-        query: null,
-        category: this.category || null,
-        threshold: 0
-      })
-    }
+<script setup>
+import { ref } from 'vue'
+
+defineProps({
+  categories: {
+    type: Array,
+    default: () => []
   }
+})
+
+const emit = defineEmits(['search'])
+
+const searchQuery = ref('')
+const category = ref('')
+const threshold = ref(0.5)
+const isSearching = ref(false)
+
+const handleSearch = () => {
+  isSearching.value = !!searchQuery.value
+  emit('search', {
+    query: searchQuery.value || null,
+    category: category.value || null,
+    threshold: threshold.value
+  })
+}
+
+const clearSearch = () => {
+  searchQuery.value = ''
+  isSearching.value = false
+  emit('search', {
+    query: null,
+    category: category.value || null,
+    threshold: 0
+  })
 }
 </script>
 
@@ -87,25 +85,8 @@ export default {
   margin-bottom: 15px;
 }
 
-.search-box input {
+.search-box .el-input {
   flex: 1;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.search-box button {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  background: #409eff;
-  color: white;
-}
-
-.search-box button.clear-btn {
-  background: #909399;
 }
 
 .filters {
@@ -117,13 +98,10 @@ export default {
 .filter-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
-.filter-item select,
-.filter-item input[type="range"] {
-  padding: 4px 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+.filter-item > span:first-child {
+  white-space: nowrap;
 }
 </style>

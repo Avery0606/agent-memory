@@ -1,103 +1,103 @@
 <template>
-  <div class="memory-list">
-    <div v-if="loading" class="loading">加载中...</div>
-    
-    <div v-else-if="memories.length === 0" class="empty">
-      暂无记忆
-    </div>
-    
+  <div class="memory-list" v-loading="loading">
+    <el-empty v-if="!loading && memories.length === 0" description="暂无记忆" />
+
     <div v-else class="memory-items">
-      <div 
-        v-for="item in memories" 
-        :key="item.id" 
+      <el-card
+        v-for="item in memories"
+        :key="item.id"
         class="memory-item"
       >
         <div class="memory-content">
           <div class="memory-text">{{ item.memory }}</div>
           <div class="memory-meta">
-            <span v-if="item.score" class="score">相似度: {{ (item.score * 100).toFixed(1) }}%</span>
-            <span v-if="item.metadata && item.metadata.category" class="category">
-              类别: {{ item.metadata.category }}
-            </span>
+            <el-tag v-if="item.score" type="warning" size="small">
+              相似度: {{ (item.score * 100).toFixed(1) }}%
+            </el-tag>
+            <el-tag v-if="item.metadata && item.metadata.category" type="primary" size="small">
+              {{ item.metadata.category }}
+            </el-tag>
             <span class="time">{{ formatTime(item.created_at) }}</span>
           </div>
         </div>
-        
+
         <div class="memory-actions">
-          <button @click="startEdit(item)" class="edit-btn">编辑</button>
-          <button @click="confirmDelete(item.id)" class="delete-btn">删除</button>
+          <el-button size="small" type="primary" @click="startEdit(item)">编辑</el-button>
+          <el-button size="small" type="danger" @click="confirmDelete(item.id)">删除</el-button>
         </div>
-        
-        <MemoryEdit 
-          v-if="editingId === item.id" 
+
+        <MemoryEdit
+          v-if="editingId === item.id"
           :memory="item"
           @save="handleSave"
           @cancel="cancelEdit"
         />
-      </div>
+      </el-card>
     </div>
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import MemoryEdit from './MemoryEdit.vue'
 import { updateMemory, deleteMemory } from '../api'
 
-export default {
-  name: 'MemoryList',
-  components: {
-    MemoryEdit
+defineProps({
+  memories: {
+    type: Array,
+    default: () => []
   },
-  props: {
-    memories: {
-      type: Array,
-      default: () => []
-    },
-    loading: {
-      type: Boolean,
-      default: false
-    }
-  },
-  emits: ['refresh'],
-  data() {
-    return {
-      editingId: null
-    }
-  },
-  methods: {
-    formatTime(timeStr) {
-      if (!timeStr) return ''
-      const date = new Date(timeStr)
-      return date.toLocaleString('zh-CN')
-    },
-    startEdit(item) {
-      this.editingId = item.id
-    },
-    cancelEdit() {
-      this.editingId = null
-    },
-    async handleSave({ memoryId, content }) {
-      try {
-        await updateMemory(memoryId, content)
-        this.editingId = null
-        this.$emit('refresh')
-      } catch (error) {
-        this.$message.error('更新失败: ' + error.message)
-      }
-    },
-    confirmDelete(memoryId) {
-      if (confirm('确定要删除这条记忆吗？')) {
-        this.handleDelete(memoryId)
-      }
-    },
-    async handleDelete(memoryId) {
-      try {
-        await deleteMemory(memoryId)
-        this.$emit('refresh')
-      } catch (error) {
-        this.$message.error('删除失败: ' + error.message)
-      }
-    }
+  loading: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const emit = defineEmits(['refresh'])
+
+const editingId = ref(null)
+
+const formatTime = (timeStr) => {
+  if (!timeStr) return ''
+  const date = new Date(timeStr)
+  return date.toLocaleString('zh-CN')
+}
+
+const startEdit = (item) => {
+  editingId.value = item.id
+}
+
+const cancelEdit = () => {
+  editingId.value = null
+}
+
+const handleSave = async ({ memoryId, content }) => {
+  try {
+    await updateMemory(memoryId, content)
+    editingId.value = null
+    emit('refresh')
+  } catch (error) {
+    ElMessage.error('更新失败: ' + error.message)
+  }
+}
+
+const confirmDelete = (memoryId) => {
+  ElMessageBox.confirm('确定要删除这条记忆吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    handleDelete(memoryId)
+  }).catch(() => {})
+}
+
+const handleDelete = async (memoryId) => {
+  try {
+    await deleteMemory(memoryId)
+    emit('refresh')
+  } catch (error) {
+    ElMessage.error('删除失败: ' + error.message)
   }
 }
 </script>
@@ -107,13 +107,6 @@ export default {
   margin-top: 20px;
 }
 
-.loading,
-.empty {
-  text-align: center;
-  padding: 40px;
-  color: #909399;
-}
-
 .memory-items {
   display: flex;
   flex-direction: column;
@@ -121,14 +114,7 @@ export default {
 }
 
 .memory-item {
-  padding: 15px;
-  border: 1px solid #ebeef5;
-  border-radius: 4px;
-  background: white;
-}
-
-.memory-content {
-  flex: 1;
+  margin-bottom: 0;
 }
 
 .memory-text {
@@ -138,40 +124,15 @@ export default {
 
 .memory-meta {
   display: flex;
-  gap: 15px;
+  gap: 10px;
+  align-items: center;
   font-size: 12px;
   color: #909399;
-}
-
-.memory-meta .score {
-  color: #e6a23c;
-}
-
-.memory-meta .category {
-  color: #409eff;
+  margin-bottom: 10px;
 }
 
 .memory-actions {
   display: flex;
   gap: 10px;
-  margin-top: 10px;
-}
-
-.memory-actions button {
-  padding: 4px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-.edit-btn {
-  background: #409eff;
-  color: white;
-}
-
-.delete-btn {
-  background: #f56c6c;
-  color: white;
 }
 </style>

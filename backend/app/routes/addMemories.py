@@ -1,32 +1,35 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from typing import Optional, Dict, Any
+from pydantic import BaseModel, field_validator
+from typing import Optional, Dict, Any, List
 from app.memory_client import get_memory_client
 
 router = APIRouter()
 
+class MessageItem(BaseModel):
+    role: str
+    content: str
+
 class AddMemoryRequest(BaseModel):
     workSpace: str
-    content: str
-    metadata: Optional[Dict[str, Any]] = {}
+    messages: List[MessageItem]
+    metadata: Optional[Dict[str, Any]] = None
 
 @router.post("/addMemories")
 def add_memories(req: AddMemoryRequest):
     """
     添加记忆
     - workSpace: 工作区名称
-    - content: 记忆内容
+    - messages: 记忆内容列表 [{"role": "user", "content": "..."}, ...]
     - metadata: 可选的元数据(如category)
     """
     try:
         m = get_memory_client()
-        messages = [{"role": "user", "content": req.content}]
         
-        
+        messages_list = [msg.model_dump() for msg in req.messages]
         result = m.add(
-            messages=messages,
+            messages_list,
             user_id=req.workSpace,
-            metadata=req.metadata
+            metadata=req.metadata if req.metadata else {}
         )
 
         return {

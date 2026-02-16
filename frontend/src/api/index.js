@@ -11,10 +11,10 @@ export function init() {
 }
 
 // 添加记忆
-export function addMemories(workSpace, content, metadata = null) {
+export function addMemories(workSpace, messages, metadata = null) {
   return api.post('/addMemories', {
     workSpace,
-    content,
+    messages,
     metadata
   })
 }
