@@ -26,6 +26,11 @@ agent-memory/
 │   │   ├── api/               # API 调用
 │   │   └── components/        # Vue 组件
 │   └── package.json
+├── mcp-server/                  # MCP 服务器 (Node.js)
+│   ├── src/
+│   │   └── index.js           # MCP 工具实现
+│   ├── package.json
+│   └── README.md
 ├── mem0-dev-docs/             # mem0 开发文档
 └── .gitignore
 ```
@@ -109,9 +114,43 @@ npm run dev
 npm run build
 ```
 
-### 5. 访问系统
+### 5. 启动 MCP 服务器 (可选)
+
+```bash
+cd mcp-server
+
+# 安装依赖
+npm install
+
+# 启动服务
+npm start
+```
+
+### 6. 访问系统
 
 打开浏览器访问: http://localhost:3000
+
+## MCP 服务器
+
+MCP 服务器提供两个工具供 AI 客户端使用：
+
+| 工具 | 功能 | 参数 |
+|------|------|------|
+| `get_memory` | 查询记忆 | `workSpace`, `query?`, `threshold?`, `category?` |
+| `add_memory` | 添加记忆 | `workSpace`, `content`, `metadata?` |
+
+### Claude Desktop / Cursor 配置
+
+```json
+{
+  "mcpServers": {
+    "memory": {
+      "command": "node",
+      "args": ["path/to/mcp-server/src/index.js"]
+    }
+  }
+}
+```
 
 ## API 接口
 
@@ -216,6 +255,7 @@ vector_store:
 - [x] 分类过滤 (通过 metadata)
 - [x] 记忆 CRUD 操作
 - [x] 前端初始化加载提示
+- [x] MCP 服务器集成 (支持 Claude Desktop / Cursor)
 
 ## 注意事项
 
