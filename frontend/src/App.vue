@@ -246,13 +246,19 @@ const handleAddMemory = async () => {
   font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .container {
   max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
-  padding: 24px;
+  padding: 16px 24px;
   animation: fadeIn 0.6s ease;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 头部 */
@@ -309,6 +315,20 @@ const handleAddMemory = async () => {
   min-width: 0;
   animation: fadeInUp 0.6s ease;
   animation-delay: 0.2s;
+  height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.right-panel .list-header {
+  flex-shrink: 0;
+}
+
+.right-panel .memory-list {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 /* 区块通用样式 */
