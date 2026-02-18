@@ -31,7 +31,7 @@ const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8000';
 const GetMemorySchema = z.object({
   query: z.string().optional().describe('Semantic search query'),
   threshold: z.number().min(0).max(1).optional().describe('Similarity threshold (0-1)'),
-  category: z.string().optional().describe('Filter by metadata category'),
+  metadata: z.record(z.any()).optional().describe('Filter by metadata fields (e.g., {category: "work", type: "important"})'),
 });
 
 const AddMemorySchema = z.object({
@@ -71,7 +71,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: [
       {
         name: 'get_memory',
-        description: 'Query memories from the memory storage. Use this to retrieve stored memories. You can search by query string, filter by category.',
+        description: 'Query memories from the memory storage. Use this to retrieve stored memories. You can search by query string, filter by metadata fields.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -83,9 +83,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: 'number',
               description: 'Similarity threshold 0-1 (optional)',
             },
-            category: {
-              type: 'string',
-              description: 'Filter by metadata category (optional)',
+            metadata: {
+              type: 'object',
+              description: 'Filter by metadata fields (e.g., {"category": "work", "type": "important"})',
+              additionalProperties: true,
             },
           },
         },
@@ -127,7 +128,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       
       if (params.query) requestBody.query = params.query;
       if (params.threshold !== undefined) requestBody.threshold = params.threshold;
-      if (params.category) requestBody.category = params.category;
+      if (params.metadata) requestBody.metadata = params.metadata;
 
       const result = await callBackend('/api/getMemories', requestBody);
       

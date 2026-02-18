@@ -83,7 +83,7 @@ Query memories from storage.
 |-----------|------|----------|-------------|
 | query | string | No | Semantic search query |
 | threshold | number | No | Similarity threshold (0-1) |
-| category | string | No | Filter by category |
+| metadata | object | No | Filter by metadata fields (e.g., {category: "work", priority: "high"}) |
 
 ### add_memory
 
@@ -106,9 +106,14 @@ await get_memory({
   threshold: 0.7
 });
 
+// Filter by metadata
+await get_memory({
+  metadata: { category: "work", priority: "high" }
+});
+
 // Add a new memory
 await add_memory({
   content: "Remember to review the quarterly report",
-  metadata: { category: "work" }
+  metadata: { category: "work", priority: "high" }
 });
 ```

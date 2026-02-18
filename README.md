@@ -1,6 +1,6 @@
 # Memory Management System
 
-基于 mem0 + Qdrant 的记忆管理系统，支持语义搜索、分类过滤等功能。
+基于 mem0 + Qdrant 的记忆管理系统，支持语义搜索、元数据过滤等功能。
 
 ## 系统架构
 
@@ -136,7 +136,7 @@ MCP 服务器提供两个工具供 AI 客户端使用。**注意**：服务器�
 
 | 工具 | 功能 | 参数 |
 |------|------|------|
-| `get_memory` | 查询记忆 | `query?`, `threshold?`, `category?` |
+| `get_memory` | 查询记忆 | `query?`, `threshold?`, `metadata?` |
 | `add_memory` | 添加记忆 | `content`, `metadata?` |
 
 ### Claude Desktop / Cursor 配置
@@ -186,7 +186,7 @@ POST /api/getMemories
   "workSpace": "workspace-name",
   "query": "搜索内容",
   "threshold": 0.5,
-  "category": "category-name"
+  "metadata": {"category": "work", "priority": "high"}
 }
 ```
 
@@ -252,7 +252,7 @@ vector_store:
 - [x] 工作区隔离 (通过 user_id 实现)
 - [x] 语义搜索
 - [x] 相似度分数过滤
-- [x] 分类过滤 (通过 metadata)
+- [x] 元数据过滤 (支持任意自定义字段)
 - [x] 记忆 CRUD 操作
 - [x] 前端初始化加载提示
 - [x] MCP 服务器集成 (支持 Claude Desktop / Cursor)

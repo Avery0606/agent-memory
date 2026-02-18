@@ -19,9 +19,19 @@
             <el-tag v-if="item.score" type="warning" size="small" class="score-tag">
               <span class="tag-content"><span class="tag-icon">◎</span> {{ (item.score * 100).toFixed(1) }}%</span>
             </el-tag>
-            <el-tag v-if="item.metadata && item.metadata.category" type="primary" size="small" class="category-tag">
-              <span class="tag-content"><span class="tag-icon">#</span> {{ item.metadata.category }}</span>
-            </el-tag>
+            <template v-if="item.metadata">
+              <el-tooltip
+                v-for="(value, key) in item.metadata"
+                :key="key"
+                :content="`类别: ${key}, 值: ${value}`"
+                placement="top"
+                effect="light"
+              >
+                <el-tag :type="getTagType(key)" size="small" class="metadata-tag">
+                  <span class="tag-content"><span class="tag-icon">#</span> {{ key }}: {{ value }}</span>
+                </el-tag>
+              </el-tooltip>
+            </template>
             <span class="time">
               <span class="time-icon">🕐</span>
               {{ formatTime(item.created_at) }}
@@ -46,6 +56,32 @@
 import { ref, h } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { updateMemory, deleteMemory } from '../api'
+
+// 标签类型映射
+const tagTypeMap = {
+  category: 'primary',
+  type: 'success',
+  priority: 'danger',
+  project: 'warning',
+  source: 'info',
+  status: 'info'
+}
+
+// 为不同 key 分配不同颜色
+const tagTypeCache = {}
+let typeIndex = 0
+const tagTypes = ['primary', 'success', 'warning', 'danger', 'info']
+
+const getTagType = (key) => {
+  if (tagTypeMap[key]) {
+    return tagTypeMap[key]
+  }
+  if (!tagTypeCache[key]) {
+    tagTypeCache[key] = tagTypes[typeIndex % tagTypes.length]
+    typeIndex++
+  }
+  return tagTypeCache[key]
+}
 
 defineProps({
   memories: {
@@ -191,7 +227,7 @@ const handleDelete = async (memoryId) => {
   background: linear-gradient(135deg, #fbbf24, var(--warning-color)) !important;
 }
 
-.category-tag {
+.metadata-tag {
   background: linear-gradient(135deg, var(--primary-light), var(--primary-color)) !important;
 }
 

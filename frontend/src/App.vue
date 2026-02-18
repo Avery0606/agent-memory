@@ -48,20 +48,41 @@
                 class="memory-input"
               />
               <div class="add-options">
-                <el-input
-                  v-model="newCategory"
-                  placeholder="标签 (可选)"
-                  class="category-input"
-                />
-                <el-button 
-                  type="success" 
-                  @click="handleAddMemory" 
-                  :disabled="!workspace || !newMemory || addingLoading" 
-                  :loading="addingLoading"
-                  class="add-btn"
-                >
-                  添加
-                </el-button>
+                <div class="tags-input-container">
+                  <el-input
+                    v-model="tagInput"
+                    placeholder="输入标签 (如: type:work)"
+                    @keyup.enter="addTag"
+                    class="tag-input"
+                  >
+                    <template #prefix>
+                      <el-icon><PriceTag /></el-icon>
+                    </template>
+                  </el-input>
+                  <el-button @click="addTag" class="add-tag-btn">添加</el-button>
+                </div>
+                <div class="tags-list" v-if="tags.length > 0">
+                  <el-tag
+                    v-for="tag in tags"
+                    :key="tag.key + tag.value"
+                    closable
+                    @close="removeTag(tag)"
+                    class="metadata-tag"
+                  >
+                    {{ tag.key }}: {{ tag.value }}
+                  </el-tag>
+                </div>
+                <div class="add-action">
+                  <el-button 
+                    type="success" 
+                    @click="handleAddMemory" 
+                    :disabled="!workspace || !newMemory || addingLoading" 
+                    :loading="addingLoading"
+                    class="add-btn"
+                  >
+                    添加记忆
+                  </el-button>
+                </div>
               </div>
             </div>
           </section>
@@ -69,7 +90,8 @@
           <!-- 搜索和过滤 -->
           <section class="search-section">
             <MemorySearch
-              :categories="categories"
+              :metadata-keys="metadataKeys"
+              :metadata-key-values="metadataKeyValues"
               @search="handleSearch"
             />
           </section>
@@ -97,7 +119,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Loading } from '@element-plus/icons-vue'
+import { Loading, PriceTag } from '@element-plus/icons-vue'
 import WorkspaceSelector from './components/WorkspaceSelector.vue'
 import MemorySearch from './components/MemorySearch.vue'
 import MemoryList from './components/MemoryList.vue'
@@ -105,10 +127,12 @@ import { getMemories, addMemories, init } from './api'
 
 const workspace = ref('')
 const newMemory = ref('')
-const newCategory = ref('')
+const tagInput = ref('')
+const tags = ref([])
 const allMemories = ref([])
 const displayMemories = ref([])
-const categories = ref([])
+const metadataKeys = ref([])
+const metadataKeyValues = ref({})  // { key: [value1, value2, ...] }
 const loading = ref(false)
 const addingLoading = ref(false)
 const isSearching = ref(false)
@@ -142,14 +166,14 @@ const loadMemories = async (searchParams = {}) => {
       workspace.value,
       searchParams.query,
       searchParams.threshold || 0,
-      searchParams.category
+      searchParams.metadata
     )
 
     const results = res.data.data.results || []
     allMemories.value = results
     displayMemories.value = results
 
-    extractCategories(results)
+    extractMetadataKeys(results)
 
     isSearching.value = !!searchParams.query
   } catch (error) {
@@ -160,18 +184,73 @@ const loadMemories = async (searchParams = {}) => {
   }
 }
 
-const extractCategories = (memories) => {
-  const cats = new Set()
+const extractMetadataKeys = (memories) => {
+  const keys = new Set()
+  const keyValues = {}
+  
   memories.forEach(m => {
-    if (m.metadata && m.metadata.category) {
-      cats.add(m.metadata.category)
+    if (m.metadata) {
+      Object.keys(m.metadata).forEach(key => {
+        keys.add(key)
+        // 收集每个 key 对应的所有 value
+        const value = m.metadata[key]
+        if (!keyValues[key]) {
+          keyValues[key] = new Set()
+        }
+        keyValues[key].add(value)
+      })
     }
   })
-  categories.value = Array.from(cats)
+  
+  metadataKeys.value = Array.from(keys)
+  
+  // 转换为 { key: [value1, value2, ...] } 格式
+  const formattedKeyValues = {}
+  Object.keys(keyValues).forEach(key => {
+    formattedKeyValues[key] = Array.from(keyValues[key])
+  })
+  metadataKeyValues.value = formattedKeyValues
 }
 
 const handleSearch = (params) => {
   loadMemories(params)
+}
+
+const addTag = () => {
+  const input = tagInput.value.trim()
+  if (!input) return
+
+  // 支持 key:value 或 key=value 格式
+  const match = input.match(/^([^:=]+)[:=](.+)$/)
+  if (!match) {
+    ElMessage.warning('请输入正确的格式，如: type:work 或 priority=high')
+    return
+  }
+
+  const key = match[1].trim()
+  const value = match[2].trim()
+
+  if (!key || !value) {
+    ElMessage.warning('key 和 value 不能为空')
+    return
+  }
+
+  // 检查是否已存在
+  const exists = tags.value.some(t => t.key === key && t.value === value)
+  if (exists) {
+    ElMessage.warning('该标签已存在')
+    return
+  }
+
+  tags.value.push({ key, value })
+  tagInput.value = ''
+}
+
+const removeTag = (tag) => {
+  const index = tags.value.findIndex(t => t.key === tag.key && t.value === tag.value)
+  if (index > -1) {
+    tags.value.splice(index, 1)
+  }
 }
 
 const handleAddMemory = async () => {
@@ -179,11 +258,16 @@ const handleAddMemory = async () => {
 
   addingLoading.value = true
   try {
-    const metadata = newCategory.value ? { category: newCategory.value } : null
+    // 将 tags 转换为 metadata 对象
+    const metadata = {}
+    tags.value.forEach(tag => {
+      metadata[tag.key] = tag.value
+    })
+
     await addMemories(workspace.value, [{ role: 'user', content: newMemory.value }], metadata)
 
     newMemory.value = ''
-    newCategory.value = ''
+    tags.value = []
 
     loadMemories()
   } catch (error) {
@@ -373,12 +457,39 @@ const handleAddMemory = async () => {
 
 .add-options {
   display: flex;
+  flex-direction: column;
   gap: 10px;
   margin-top: 12px;
 }
 
-.category-input {
+.tags-input-container {
+  display: flex;
+  gap: 8px;
+}
+
+.tag-input {
   flex: 1;
+}
+
+.add-tag-btn {
+  height: 36px;
+  padding: 0 16px;
+}
+
+.tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.metadata-tag {
+  font-size: 12px;
+}
+
+.add-action {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
 }
 
 .add-btn {

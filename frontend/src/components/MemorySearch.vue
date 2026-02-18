@@ -23,15 +23,28 @@
       </div>
 
       <div class="filters">
-        <div class="filter-item">
+        <div class="filter-item metadata-filter">
           <span class="filter-label">
             <el-icon><Filter /></el-icon>
-            类别筛选
+            元数据筛选
           </span>
-          <el-select v-model="category" placeholder="全部" @change="handleSearch" clearable class="category-select">
-            <el-option value="" label="全部" />
-            <el-option v-for="cat in categories" :key="cat" :value="cat" :label="cat" />
-          </el-select>
+          <div class="metadata-selects">
+            <el-select v-model="selectedKey" placeholder="字段" @change="onKeyChange" clearable class="key-select">
+              <el-option value="" label="全部" />
+              <el-option v-for="key in metadataKeys" :key="key" :value="key" :label="key" />
+            </el-select>
+            <el-select 
+              v-if="selectedKey" 
+              v-model="selectedValue" 
+              placeholder="值" 
+              @change="handleSearch" 
+              clearable 
+              class="value-select"
+            >
+              <el-option value="" label="全部" />
+              <el-option v-for="val in availableValues" :key="val" :value="val" :label="val" />
+            </el-select>
+          </div>
         </div>
 
         <div class="filter-item threshold-filter" v-if="isSearching">
@@ -56,38 +69,69 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { Search, Filter, Aim } from '@element-plus/icons-vue'
 
-defineProps({
-  categories: {
+const props = defineProps({
+  metadataKeys: {
     type: Array,
     default: () => []
+  },
+  metadataKeyValues: {
+    type: Object,
+    default: () => ({})
   }
 })
 
 const emit = defineEmits(['search'])
 
 const searchQuery = ref('')
-const category = ref('')
+const selectedKey = ref('')
+const selectedValue = ref('')
 const threshold = ref(0.5)
 const isSearching = ref(false)
 
+// 根据选中的 key 获取可选值列表
+const availableValues = computed(() => {
+  if (!selectedKey.value || !props.metadataKeyValues[selectedKey.value]) {
+    return []
+  }
+  return props.metadataKeyValues[selectedKey.value]
+})
+
+// 监听 key 变化时，更新可选值
+const onKeyChange = () => {
+  selectedValue.value = ''
+  handleSearch()
+}
+
+const buildMetadataFilter = () => {
+  if (!selectedKey.value || !selectedValue.value) {
+    return null
+  }
+  return {
+    [selectedKey.value]: selectedValue.value
+  }
+}
+
 const handleSearch = () => {
   isSearching.value = !!searchQuery.value
+  const metadata = buildMetadataFilter()
   emit('search', {
     query: searchQuery.value || null,
-    category: category.value || null,
+    metadata: metadata,
     threshold: threshold.value
   })
 }
 
 const clearSearch = () => {
   searchQuery.value = ''
+  selectedKey.value = ''
+  selectedValue.value = ''
   isSearching.value = false
   emit('search', {
     query: null,
-    category: category.value || null,
+    metadata: null,
     threshold: 0
   })
 }
@@ -144,24 +188,18 @@ const clearSearch = () => {
 .filter-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.filter-label {
+.metadata-filter .metadata-selects {
   display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  color: var(--text-secondary);
-  white-space: nowrap;
+  gap: 4px;
 }
 
-.filter-label .el-icon {
-  color: var(--primary-color);
-}
-
-.category-select {
-  width: 160px;
+.metadata-filter .key-select,
+.metadata-filter .value-select {
+  width: 100px;
 }
 
 .threshold-filter {

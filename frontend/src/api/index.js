@@ -20,12 +20,12 @@ export function addMemories(workSpace, messages, metadata = null) {
 }
 
 // 获取记忆 (搜索或获取所有)
-export function getMemories(workSpace, query = null, threshold = 0, category = null) {
+export function getMemories(workSpace, query = null, threshold = 0, metadata = null) {
   return api.post('/getMemories', {
     workSpace,
     query,
     threshold,
-    category
+    metadata
   })
 }
 
