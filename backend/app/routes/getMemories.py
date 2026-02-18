@@ -41,19 +41,35 @@ def get_memories(req: GetMemoryRequest):
                 filters=filters if filters else None
             )
         
-        # 按创建时间降序排序（越新的排在前面）
-        if isinstance(result, dict) and "results" in result:
-            result["results"] = sorted(
-                result["results"],
-                key=lambda x: x.get("created_at", ""),
-                reverse=True
-            )
-        elif isinstance(result, list):
-            result = sorted(
-                result,
-                key=lambda x: x.get("created_at", ""),
-                reverse=True
-            )
+        # 排序逻辑：有query时按相似度排序，无query时按时间排序
+        if req.query:
+            # 语义搜索：按相似度分数降序排序（越相似的排在前面）
+            if isinstance(result, dict) and "results" in result and isinstance(result["results"], list):
+                result["results"] = sorted(
+                    result["results"],
+                    key=lambda x: x.get("score", 0) if isinstance(x, dict) else 0,
+                    reverse=True
+                )
+            elif isinstance(result, list):
+                result = sorted(
+                    result,
+                    key=lambda x: x.get("score", 0) if isinstance(x, dict) else 0,
+                    reverse=True
+                )
+        else:
+            # 获取所有记忆：按创建时间降序排序（越新的排在前面）
+            if isinstance(result, dict) and "results" in result and isinstance(result["results"], list):
+                result["results"] = sorted(
+                    result["results"],
+                    key=lambda x: x.get("created_at", "") if isinstance(x, dict) else "",
+                    reverse=True
+                )
+            elif isinstance(result, list):
+                result = sorted(
+                    result,
+                    key=lambda x: x.get("created_at", "") if isinstance(x, dict) else "",
+                    reverse=True
+                )
         
         return {
             "success": True,
