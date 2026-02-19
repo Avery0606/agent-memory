@@ -4,7 +4,7 @@
       <div class="search-box">
         <el-input
           v-model="searchQuery"
-          placeholder="搜索记忆内容..."
+          placeholder="搜索内容..."
           @keyup.enter="handleSearch"
           clearable
           class="search-input"

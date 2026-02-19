@@ -7,7 +7,7 @@
           <el-icon class="is-loading" :size="56"><Loading /></el-icon>
         </div>
         <p class="init-title">正在初始化</p>
-        <p class="init-subtitle">正在连接记忆系统...</p>
+        <p class="init-subtitle">正在连接 Synapse...</p>
       </div>
     </div>
     
@@ -16,10 +16,10 @@
       <!-- 头部 -->
       <header class="app-header">
         <div class="header-content">
-          <div class="logo">
-            <span class="logo-icon">🧠</span>
-            <h1>记忆管理系统</h1>
-          </div>
+            <div class="logo">
+              <span class="logo-icon">🧠</span>
+              <h1>Synapse</h1>
+            </div>
         </div>
       </header>
 
@@ -37,7 +37,7 @@
             <div class="add-memory">
               <div class="add-header">
                 <span class="add-icon">✨</span>
-                <span class="add-title">添加新记忆</span>
+                <span class="add-title">添加到 Synapse</span>
               </div>
               <el-input
                 v-model="newMemory"
@@ -80,7 +80,7 @@
                     :loading="addingLoading"
                     class="add-btn"
                   >
-                    添加记忆
+                    添加到 Synapse
                   </el-button>
                 </div>
               </div>
@@ -101,7 +101,7 @@
         <main class="right-panel">
           <div class="list-header">
             <span class="list-icon">📚</span>
-            <span class="list-title">记忆库</span>
+            <span class="list-title">记录库</span>
             <span class="memory-count" v-if="displayMemories.length > 0">{{ displayMemories.length }} 条</span>
           </div>
           <MemoryList
@@ -177,7 +177,7 @@ const loadMemories = async (searchParams = {}) => {
 
     isSearching.value = !!searchParams.query
   } catch (error) {
-    console.error('加载记忆失败:', error)
+    console.error('加载失败:', error)
     ElMessage.error('加载失败: ' + error.message)
   } finally {
     loading.value = false

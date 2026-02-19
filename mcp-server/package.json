@@ -1,7 +1,7 @@
 {
-  "name": "memory-mcp-server",
+  "name": "synapse",
   "version": "1.0.0",
-  "description": "MCP server for memory management",
+  "description": "Synapse - MCP server for memory management",
   "main": "src/index.js",
   "type": "module",
   "scripts": {

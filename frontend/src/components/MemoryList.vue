@@ -1,6 +1,6 @@
 <template>
   <div class="memory-list" v-loading="loading">
-    <el-empty v-if="!loading && memories.length === 0" description="暂无记忆">
+    <el-empty v-if="!loading && memories.length === 0" description="暂无记录">
       <template #image>
         <div class="empty-illustration">💭</div>
       </template>
