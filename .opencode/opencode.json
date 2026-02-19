@@ -3,7 +3,7 @@
   "mcp": {
     "agent-memory-mcp-server": {
       "type": "local",
-      "command": ["node", "D:\\git-project\\agent-memory\\mcp-server\\src\\index.js", "--workSpace", "agentMemory"],
+      "command": ["node", "D:\\git-project\\synapse\\mcp-server\\src\\index.js", "--workSpace", "agentMemory"],
       "enabled": true
     }
   }
