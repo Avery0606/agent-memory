@@ -6,5 +6,8 @@
       "command": ["node", "D:\\git-project\\synapse\\mcp-server\\src\\index.js", "--workSpace", "agentMemory"],
       "enabled": true
     }
-  }
+  },
+  "plugin": [
+    "file:///D:/git-project/synapse/opencode-plugin"
+  ]
 }
