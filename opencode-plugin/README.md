@@ -32,7 +32,6 @@ Your agent remembers what you tell it - across sessions, across projects.
 {
   "backendUrl": "http://localhost:8000",
   "workspace": "agentMemory",
-  "injectCategory": "basicInfos",
   "similarityThreshold": 0.6
 }
 ```
@@ -46,7 +45,6 @@ Your agent remembers what you tell it - across sessions, across projects.
 {
   "backendUrl": "http://localhost:8000",
   "workspace": "agentMemory",
-  "injectCategory": "basicInfos",
   "similarityThreshold": 0.6
 }
 ```
@@ -63,7 +61,6 @@ Your agent remembers what you tell it - across sessions, across projects.
 |--------|--------|------|
 | `backendUrl` | `http://localhost:8000` | mem0 后端地址 |
 | `workspace` | `agentMemory` | 工作区名称 |
-| `injectCategory` | `basicInfos` | 首次注入的记忆类别 |
 | `similarityThreshold` | `0.6` | 搜索相似度阈值 |
 
 **优先级**：环境变量 > 配置文件 > 默认值
@@ -74,29 +71,23 @@ Your agent remembers what you tell it - across sessions, across projects.
 # 可用环境变量覆盖配置文件
 export MEM0_BACKEND_URL="http://localhost:8000"
 export MEM0_WORKSPACE="agentMemory"
-export MEM0_INJECT_CATEGORY="basicInfos"
 export MEM0_SIMILARITY_THRESHOLD=0.6
 ```
 
 ## Features
 
-### Context Injection
+### AI-Driven Memory Query
 
-首次消息时，Agent 会自动接收（对用户不可见）：
-- 配置类别的记忆（如 `basicInfos`）
+**不再自动注入记忆**。AI 会根据对话内容自行判断何时需要查询记忆。
 
-注入示例：
+当 AI 认为需要参考之前保存的记忆时，它会主动使用 `mem0` tool 的 `search` 模式来查询相关记忆。
+
+示例：
 ```
-[MEMORY - basicInfos]
-- 2026年除夕创建的项目
-- 项目名称: agentMemory
-- 项目前端用的是 Vue
-- 项目后台使用 Python + FastAPI
-- 项目提供添加记忆、删除记忆、搜索记忆的接口
-- 需要使用Node.js来启动MCP服务
+你说: "上次我们项目用的是什么前端框架？"
+AI: [调用 mem0 search 查询 "前端框架"]
+-> 返回: "项目使用 Vue 3 + Element Plus"
 ```
-
-Agent 自动使用这些上下文 - 无需手动提示。
 
 ### Keyword Detection
 
@@ -178,9 +169,6 @@ export MEM0_BACKEND_URL="http://localhost:8000"
 
 # 可选：工作区
 export MEM0_WORKSPACE="agentMemory"
-
-# 可选：首次注入的记忆类别
-export MEM0_INJECT_CATEGORY="basicInfos"
 
 # 可选：搜索相似度阈值
 export MEM0_SIMILARITY_THRESHOLD=0.6

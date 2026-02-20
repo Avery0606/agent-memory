@@ -5,14 +5,12 @@ import { homedir } from "node:os";
 interface Mem0Config {
   backendUrl: string;
   workspace: string;
-  injectCategory: string;
   similarityThreshold: number;
 }
 
 interface Mem0ConfigFile {
   backendUrl?: string;
   workspace?: string;
-  injectCategory?: string;
   similarityThreshold?: number;
 }
 
@@ -38,7 +36,6 @@ const DEFAULT_KEYWORD_PATTERNS = [
 const DEFAULT_CONFIG: Mem0Config = {
   backendUrl: "http://localhost:8000",
   workspace: "agentMemory",
-  injectCategory: "basicInfos",
   similarityThreshold: 0.6,
 };
 
@@ -86,7 +83,6 @@ function loadConfig(directory?: string): Mem0Config {
   return {
     backendUrl: process.env.MEM0_BACKEND_URL || fileConfig.backendUrl || DEFAULT_CONFIG.backendUrl,
     workspace: process.env.MEM0_WORKSPACE || fileConfig.workspace || DEFAULT_CONFIG.workspace,
-    injectCategory: process.env.MEM0_INJECT_CATEGORY || fileConfig.injectCategory || DEFAULT_CONFIG.injectCategory,
     similarityThreshold: parseFloat(process.env.MEM0_SIMILARITY_THRESHOLD || "") || fileConfig.similarityThreshold || DEFAULT_CONFIG.similarityThreshold,
   };
 }

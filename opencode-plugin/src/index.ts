@@ -1,6 +1,5 @@
 import { getConfig, getKeywordPatterns, isConfigured } from "./config.js";
 import { createMem0ApiClient } from "./services/api.js";
-import { fetchMemoriesByCategory } from "./services/context.js";
 import { stripPrivateContent, isFullyPrivate } from "./services/privacy.js";
 import { log, logError } from "./services/logger.js";
 
@@ -45,30 +44,6 @@ interface ChatMessageOutput {
   parts: Part[];
 }
 
-function formatMemoriesByCategory(
-  memoriesByCategory: Map<string, { id: string; memory: string; score?: number; metadata?: Record<string, unknown>; created_at?: string }[]>
-): string {
-  const parts: string[] = [];
-
-  memoriesByCategory.forEach((memories, category) => {
-    if (memories.length === 0) return;
-
-    parts.push(`[MEMORY - ${category}]`);
-
-    memories.forEach((mem) => {
-      const score = mem.score !== undefined ? Math.round(mem.score * 100) : 100;
-      const content = mem.memory || "";
-      parts.push(`- ${content}`);
-    });
-  });
-
-  if (parts.length === 0) {
-    return "";
-  }
-
-  return parts.join("\n");
-}
-
 export const Mem0Plugin = async (ctx: {
   directory: string;
   client: {
@@ -94,9 +69,7 @@ export const Mem0Plugin = async (ctx: {
   };
 }) => {
   const { directory } = ctx;
-  const injectedSessions = new Set<string>();
-  
-  // Get config for this directory
+
   const config = getConfig(directory);
   const keywordPatterns = getKeywordPatterns();
   const apiClient = createMem0ApiClient(config.backendUrl);
@@ -150,39 +123,7 @@ export const Mem0Plugin = async (ctx: {
           output.parts.push(nudgePart);
         }
 
-        // First message: inject memories
-        const isFirstMessage = !injectedSessions.has(input.sessionID);
 
-        if (isFirstMessage) {
-          injectedSessions.add(input.sessionID);
-
-          const memoriesResult = await fetchMemoriesByCategory(
-            apiClient.getMemories.bind(apiClient),
-            config.workspace,
-            config.injectCategory
-          );
-
-          const memoryContext = formatMemoriesByCategory(memoriesResult);
-
-          if (memoryContext) {
-            const contextPart: Part = {
-              id: `mem0-context-${Date.now()}`,
-              sessionID: input.sessionID,
-              messageID: output.message.id,
-              type: "text",
-              text: memoryContext,
-              synthetic: true,
-            };
-
-            output.parts.unshift(contextPart);
-
-            const duration = Date.now() - start;
-            log("chat.message: context injected", {
-              duration,
-              contextLength: memoryContext.length,
-            });
-          }
-        }
       } catch (error) {
         logError("chat.message: ERROR", { error: String(error) });
       }
